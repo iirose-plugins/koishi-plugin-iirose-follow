@@ -1,16 +1,35 @@
 import { Context, Schema, Logger, Session, h } from 'koishi';
+
 import { } from 'koishi-plugin-adapter-iirose';
 
 export const name = 'iirose-follow';
+export const inject = ['database'];
+
+export const usage = `
+---
+
+仅支持iirose平台。请搭配adapter-iirose使用。
+
+---
+
+需要在配置项里填写对应的UID后才能使用指令 开启跟随哦~
+
+- 唯一标识(UID) 可以使用 inspect 指令插件
+
+---
+
+当适配器下发 iirose/switchRoom 事件后，机器人会根据设定的UID前往目标房间
+
+---
+`
+
 
 export interface Config {
   permission: string[];
 }
 
-export const inject = ['database'];
-
 export const Config: Schema<Config> = Schema.object({
-  permission: Schema.array(String).description('允许使用者唯一标识列表').default([])
+  permission: Schema.array(String).description('允许跟随的唯一标识(UID)列表<br>是iirose平台特有的用户唯一标识哦').default([])
 });
 
 const logger = new Logger('IIROSE-Follow');
@@ -103,6 +122,7 @@ export function apply(ctx: Context, config: Config) {
     }
     logger.info(`跟随 ${session.username} 跳转到房间: ${data.targetRoom}`);
     await session.bot.internal.moveRoom({ roomId: data.targetRoom });
+    return
   });
 
   // ctx.once('iirose/selfMove', (session, data) => {
